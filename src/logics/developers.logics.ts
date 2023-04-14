@@ -171,7 +171,8 @@ const setInfo = async (
 
   if (!test) {
     return response.status(400).json({
-      message: `Preferred OS are ${requiredKeysList}`,
+      message: "Invalid OS option.",
+      options: requiredKeysList,
     });
   }
 
