@@ -18,6 +18,7 @@ import {
 import {
   createProject,
   deleteProject,
+  deleteTechRelation,
   postTechnology,
   retrieveProject,
   updateProject,
@@ -38,6 +39,10 @@ app.patch("/projects/:id", ensureProjectExists, updateProject);
 app.delete("/projects/:id", ensureProjectExists, deleteProject);
 
 app.post("/projects/:id/technologies", ensureProjectExists, postTechnology);
-app.delete("/projects/:id/technologies/:name", ensureProjectExists);
+app.delete(
+  "/projects/:id/technologies/:name",
+  ensureProjectExists,
+  deleteTechRelation
+);
 
 export default app;

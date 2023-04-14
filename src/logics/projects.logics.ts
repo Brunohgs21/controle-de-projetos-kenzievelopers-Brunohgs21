@@ -4,6 +4,7 @@ import format from "pg-format";
 import { client } from "../database";
 import {
   IProject,
+  ITech,
   ProjectResult,
   RetrieveProjectResult,
 } from "../interfaces/projects.interfaces";
@@ -285,10 +286,82 @@ const postTechnology = async (
   return response.json(queryResultProject.rows);
 };
 
+const deleteTechRelation = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const projectsId: number = parseInt(req.params.id);
+  const techName: string = req.params.name;
+
+  let queryString: string = `
+    SELECT
+        *
+    FROM
+      technologies
+    WHERE
+      name = $1;
+  `;
+  let queryConfig: QueryConfig = {
+    text: queryString,
+    values: [techName],
+  };
+  const queryResultTech = await client.query(queryConfig);
+  if (queryResultTech.rowCount === 0) {
+    res.status(404).json({
+      message: "Technology not found!",
+      options: [
+        "JavaScript",
+        "Python",
+        "React",
+        "Express.js",
+        "HTML",
+        "CSS",
+        "Django",
+        "PostgreSQL",
+      ],
+    });
+  }
+  const { id, name }: ITech = queryResultTech.rows[0];
+
+  queryString = `
+        SELECT
+            *
+        FROM
+            projects_technologies
+        WHERE
+            "projectId" = $1 AND "technologyId" = $2;
+      `;
+  queryConfig = {
+    text: queryString,
+    values: [projectsId, id],
+  };
+  const queryResult = await client.query(queryConfig);
+  if (queryResult.rowCount === 0) {
+    return res.status(400).json({
+      message: `Technology ${name} not found in this project!`,
+    });
+  } else {
+    queryString = `
+        DELETE FROM
+            projects_technologies
+        WHERE
+            "projectId" = $1 AND "technologyId" = $2;
+        `;
+    queryConfig = {
+      text: queryString,
+      values: [projectsId, id],
+    };
+    const queryResult = await client.query(queryConfig);
+  }
+
+  return res.status(204).send();
+};
+
 export {
   createProject,
   retrieveProject,
   updateProject,
   deleteProject,
   postTechnology,
+  deleteTechRelation,
 };

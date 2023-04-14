@@ -23,8 +23,19 @@ interface IRetrieveProject {
   technologyName: number | null;
 }
 
+interface ITech {
+  name: string;
+  id: number;
+}
+
 type RetrieveProjectResult = QueryResult<IRetrieveProject>;
 
 type ProjectResult = QueryResult<IProject>;
 
-export { IProject, ProjectResult, IRetrieveProject, RetrieveProjectResult };
+export {
+  IProject,
+  ProjectResult,
+  IRetrieveProject,
+  RetrieveProjectResult,
+  ITech,
+};
