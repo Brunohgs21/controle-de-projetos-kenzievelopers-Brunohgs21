@@ -68,6 +68,30 @@ const createProject = async (
       error: `Missing required keys: ${validatedKeys}`,
     });
   }
+  const { developerId } = request.body;
+  const id: number = developerId;
+
+  const queryStringTest: string = `
+    SELECT
+        COUNT(*)
+    FROM
+        developers
+    WHERE
+        id = $1;
+  `;
+
+  const queryConfig: QueryConfig = {
+    text: queryStringTest,
+    values: [id],
+  };
+
+  const queryResultTest = await client.query(queryConfig);
+
+  if (Number(queryResultTest.rows[0].count) == 0) {
+    return response.status(404).json({
+      message: "Developer does not exist!",
+    });
+  }
 
   const queryString: string = format(
     `
@@ -138,6 +162,12 @@ const updateProject = async (
   ];
   const validatedData = removeNonMappedKeys(updatableFields, request.body);
 
+  if (Object.keys(validatedData).length === 0) {
+    return response.status(400).json({
+      error: `Updatable fields are: ${updatableFields}`,
+    });
+  }
+
   const queryString: string = format(
     `
     UPDATE
@@ -186,6 +216,11 @@ const postTechnology = async (
   response: Response
 ): Promise<Response> => {
   const { name } = request.body;
+  if (name === undefined) {
+    return response.status(400).json({
+      error: "Missing technology name",
+    });
+  }
   const projectId: number = parseInt(request.params.id);
 
   let queryString: string = `

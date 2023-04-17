@@ -33,7 +33,7 @@ app.patch("/developers/:id", ensureDevExists, ensureEmailExists, updateDev);
 app.delete("/developers/:id", ensureDevExists, deleteDev);
 app.post("/developers/:id/infos", ensureDevExists, setInfo);
 
-app.post("/projects", ensureDevInBodyExists, createProject);
+app.post("/projects", createProject);
 app.get("/projects/:id", ensureProjectExists, retrieveProject);
 app.patch("/projects/:id", ensureProjectExists, updateProject);
 app.delete("/projects/:id", ensureProjectExists, deleteProject);

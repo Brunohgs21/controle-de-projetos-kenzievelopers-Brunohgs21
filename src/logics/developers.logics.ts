@@ -12,12 +12,44 @@ import {
   RetrieveDevResult,
 } from "../interfaces/developers.interfaces";
 
+const removeNonMappedKeys = (mappedKeys: string[], payload: any) => {
+  const removedKeys = Object.entries(payload).filter(([key, value]) => {
+    if (mappedKeys.includes(key)) return [key, value];
+  });
+
+  return Object.fromEntries(removedKeys);
+};
+
+const validateRequiredKeys = (
+  requiredKeys: string[],
+  payload: any
+): Array<string> => {
+  const payloadKeys: string[] = Object.keys(payload);
+  const missingKeys: string[] = [];
+
+  requiredKeys.forEach((requiredKey: string): void => {
+    if (!payloadKeys.includes(requiredKey)) {
+      missingKeys.push(requiredKey);
+    }
+  });
+
+  return missingKeys;
+};
+
 const createDev = async (
   request: Request,
   response: Response
 ): Promise<Response> => {
-  const { name, email } = request.body;
-  const devData: IDevRequest = { name, email };
+  const keys: string[] = ["name", "email"];
+  const devData = removeNonMappedKeys(keys, request.body);
+  const validatedKeys = validateRequiredKeys(keys, request.body);
+
+  if (validatedKeys.length > 0) {
+    return response.status(400).json({
+      error: `Missing required keys: ${validatedKeys}`,
+    });
+  }
+
   const queryString: string = format(
     `
           INSERT INTO
@@ -64,14 +96,6 @@ const retrieveDev = async (
   return response.status(200).json(queryResult.rows[0]);
 };
 
-const removeNonMappedKeys = (mappedKeys: string[], payload: any) => {
-  const removedKeys = Object.entries(payload).filter(([key, value]) => {
-    if (mappedKeys.includes(key)) return [key, value];
-  });
-
-  return Object.fromEntries(removedKeys);
-};
-
 const updateDev = async (
   request: Request,
   response: Response
@@ -84,27 +108,34 @@ const updateDev = async (
     requiredKeys,
     updateData
   );
+  if (Object.keys(devData).length === 0) {
+    return response.status(400).json({
+      error: "Updatable fields are: name or email",
+    });
+  }
 
-  const queryString: string = format(
-    `
-    UPDATE
-        developers
-    SET(%I) = ROW(%L)
-    WHERE
-        id = $1
-    RETURNING *;
-    `,
-    Object.keys(devData),
-    Object.values(devData)
-  );
+  return response.json();
 
-  const queryConfig: QueryConfig = {
-    text: queryString,
-    values: [id],
-  };
+  // const queryString: string = format(
+  //   `
+  //   UPDATE
+  //       developers
+  //   SET(%I) = ROW(%L)
+  //   WHERE
+  //       id = $1
+  //   RETURNING *;
+  //   `,
+  //   Object.keys(devData),
+  //   Object.values(devData)
+  // );
 
-  const queryResult: DevResult = await client.query(queryConfig);
-  return response.status(200).json(queryResult.rows[0]);
+  // const queryConfig: QueryConfig = {
+  //   text: queryString,
+  //   values: [id],
+  // };
+
+  // const queryResult: DevResult = await client.query(queryConfig);
+  // return response.status(200).json(queryResult.rows[0]);
 };
 
 const deleteDev = async (
@@ -134,8 +165,17 @@ const setInfo = async (
   response: Response
 ): Promise<Response> => {
   const developerId: number = parseInt(request.params.id);
+  request.body = { ...request.body, developerId };
+  const keys: string[] = ["developerSince", "preferredOS", "developerId"];
+  const data = removeNonMappedKeys(keys, request.body);
+  const validatedKeys = validateRequiredKeys(keys, request.body);
+
+  if (validatedKeys.length > 0) {
+    return response.status(400).json({
+      error: `Missing required keys: ${validatedKeys}`,
+    });
+  }
   const { developerSince, preferredOS }: IDevInfo = request.body;
-  const data = { developerSince, preferredOS, developerId };
 
   let queryString: string = `
   SELECT
