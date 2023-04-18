@@ -267,7 +267,7 @@ const postTechnology = async (
     values: [projectId, techId],
   };
   const queryResult = await client.query(queryConfig);
-  console.log(queryResult.rows);
+
   if (queryResult.rowCount > 0) {
     return response.status(409).json({
       message: "Technology already exists in this project!",
@@ -308,17 +308,17 @@ const postTechnology = async (
         LEFT JOIN
               technologies tc ON pt."technologyId" = tc.id
         WHERE
-            pj.id = $1;
+            pj.id = $1 AND tc.name = $2;
       `;
 
   queryConfig = {
     text: queryString,
-    values: [projectId],
+    values: [projectId, name],
   };
 
   const queryResultProject: ProjectResult = await client.query(queryConfig);
 
-  return response.json(queryResultProject.rows);
+  return response.json(queryResultProject.rows[0]);
 };
 
 const deleteTechRelation = async (
@@ -342,7 +342,7 @@ const deleteTechRelation = async (
   };
   const queryResultTech = await client.query(queryConfig);
   if (queryResultTech.rowCount === 0) {
-    res.status(404).json({
+    res.status(400).json({
       message: "Technology not found!",
       options: [
         "JavaScript",
