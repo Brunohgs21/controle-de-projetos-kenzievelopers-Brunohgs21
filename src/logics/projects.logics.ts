@@ -144,7 +144,7 @@ const retrieveProject = async (
 
   const queryResult: RetrieveProjectResult = await client.query(queryConfig);
 
-  return response.status(200).json(queryResult.rows[0]);
+  return response.status(200).json(queryResult.rows);
 };
 
 const updateProject = async (
@@ -243,7 +243,7 @@ const postTechnology = async (
       error: "Missing technology name",
     });
   }
-  const projectId = request.params.id;
+  const projectId: number = parseInt(request.params.id);
 
   let queryString: string = `
       SELECT
