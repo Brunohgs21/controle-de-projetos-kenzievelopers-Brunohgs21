@@ -11,7 +11,7 @@ const ensureEmailExists = async (
 
   const queryString: string = `
     SELECT
-        COUNT(*)
+        *
     FROM
         developers
     WHERE
@@ -24,24 +24,24 @@ const ensureEmailExists = async (
   };
 
   const queryResult = await client.query(queryConfig);
-
-  if (Number(queryResult.rows[0].count) > 0) {
+  if (queryResult.rowCount > 0) {
     return response.status(409).json({
       message: "Email already exists!",
     });
   }
   return next();
 };
+
 const ensureDevExists = async (
   request: Request,
   response: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const id: number = parseInt(request.params.id);
+  const id: string = request.params.id;
 
   const queryString: string = `
     SELECT
-        COUNT(*)
+        *
     FROM
         developers
     WHERE
@@ -55,7 +55,7 @@ const ensureDevExists = async (
 
   const queryResult = await client.query(queryConfig);
 
-  if (Number(queryResult.rows[0].count) > 0) {
+  if (queryResult.rowCount > 0) {
     return next();
   }
   return response.status(404).json({

@@ -152,6 +152,28 @@ const updateProject = async (
   response: Response
 ): Promise<Response> => {
   const id: number = parseInt(request.params.id);
+  const { developerId } = request.body;
+  const queryStringTest: string = `
+    SELECT
+        *
+    FROM
+        developers
+    WHERE
+        id = $1;
+  `;
+
+  const queryConfigTest: QueryConfig = {
+    text: queryStringTest,
+    values: [developerId],
+  };
+
+  const queryResultTest = await client.query(queryConfigTest);
+
+  if (queryResultTest.rowCount === 0) {
+    return response.status(404).json({
+      message: "Developer does not exist!",
+    });
+  }
   const updatableFields: string[] = [
     "name",
     "description",
@@ -237,7 +259,7 @@ const postTechnology = async (
   };
   const queryResultTech = await client.query(queryConfig);
   if (queryResultTech.rowCount === 0) {
-    return response.status(404).json({
+    return response.status(400).json({
       message: "Technology not suported!",
       options: [
         "JavaScript",

@@ -93,14 +93,14 @@ const retrieveDev = async (
 
   const queryResult: RetrieveDevResult = await client.query(queryConfig);
 
-  return response.status(200).json(queryResult.rows[0]);
+  return response.json(queryResult.rows[0]);
 };
 
 const updateDev = async (
   request: Request,
   response: Response
 ): Promise<Response> => {
-  const id: number = parseInt(request.params.id);
+  const id: string = request.params.id;
   const updateData: IDevUpdate = request.body;
   const requiredKeys: string[] = ["name", "email"];
 
@@ -114,28 +114,26 @@ const updateDev = async (
     });
   }
 
-  return response.json();
+  const queryString: string = format(
+    `
+    UPDATE
+        developers
+    SET(%I) = ROW(%L)
+    WHERE
+        id = $1
+    RETURNING *;
+    `,
+    Object.keys(devData),
+    Object.values(devData)
+  );
 
-  // const queryString: string = format(
-  //   `
-  //   UPDATE
-  //       developers
-  //   SET(%I) = ROW(%L)
-  //   WHERE
-  //       id = $1
-  //   RETURNING *;
-  //   `,
-  //   Object.keys(devData),
-  //   Object.values(devData)
-  // );
+  const queryConfig: QueryConfig = {
+    text: queryString,
+    values: [id],
+  };
 
-  // const queryConfig: QueryConfig = {
-  //   text: queryString,
-  //   values: [id],
-  // };
-
-  // const queryResult: DevResult = await client.query(queryConfig);
-  // return response.status(200).json(queryResult.rows[0]);
+  const queryResult: DevResult = await client.query(queryConfig);
+  return response.status(200).json(queryResult.rows[0]);
 };
 
 const deleteDev = async (
@@ -228,7 +226,7 @@ const setInfo = async (
   );
   let queryResult: DevInfoResult = await client.query(queryString);
 
-  return response.json(queryResult.rows[0]);
+  return response.status(201).json(queryResult.rows[0]);
 };
 
 export { createDev, retrieveDev, updateDev, deleteDev, setInfo };
