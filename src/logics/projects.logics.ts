@@ -318,7 +318,7 @@ const postTechnology = async (
 
   const queryResultProject: ProjectResult = await client.query(queryConfig);
 
-  return response.json(queryResultProject.rows[0]);
+  return response.status(201).json(queryResultProject.rows[0]);
 };
 
 const deleteTechRelation = async (
@@ -342,7 +342,7 @@ const deleteTechRelation = async (
   };
   const queryResultTech = await client.query(queryConfig);
   if (queryResultTech.rowCount === 0) {
-    res.status(400).json({
+    return res.status(400).json({
       message: "Technology not found!",
       options: [
         "JavaScript",
