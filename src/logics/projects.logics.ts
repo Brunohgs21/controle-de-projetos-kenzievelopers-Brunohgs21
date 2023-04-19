@@ -107,7 +107,7 @@ const createProject = async (
 
   const queryResult: ProjectResult = await client.query(queryString);
 
-  return response.status(201).json(queryResult.rows);
+  return response.status(201).json(queryResult.rows[0]);
 };
 
 const retrieveProject = async (
